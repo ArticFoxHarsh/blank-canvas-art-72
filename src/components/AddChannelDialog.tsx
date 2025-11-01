@@ -22,12 +22,15 @@ export const AddChannelDialog = ({ open, onOpenChange }: AddChannelDialogProps) 
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!name.trim() || !user) return;
+    const trimmedName = name.trim();
+    const trimmedDescription = description.trim();
+    
+    if (!trimmedName || !user) return;
 
     setLoading(true);
     const { error } = await supabase.from('channels').insert({
-      name: name.toLowerCase().replace(/\s+/g, '-'),
-      description: description.trim() || null,
+      name: trimmedName.toLowerCase().replace(/\s+/g, '-'),
+      description: trimmedDescription || null,
       type: 'channel',
       section: 'Channels',
       created_by: user.id,
@@ -36,13 +39,13 @@ export const AddChannelDialog = ({ open, onOpenChange }: AddChannelDialogProps) 
     if (error) {
       toast({
         title: 'Error',
-        description: 'Failed to create channel',
+        description: error.message || 'Failed to create channel',
         variant: 'destructive',
       });
     } else {
       toast({
         title: 'Channel created',
-        description: `#${name} has been created successfully`,
+        description: `#${trimmedName} has been created successfully`,
       });
       setName('');
       setDescription('');

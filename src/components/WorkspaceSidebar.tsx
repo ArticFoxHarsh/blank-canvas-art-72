@@ -97,7 +97,7 @@ export const WorkspaceSidebar = () => {
           <div className="space-y-0.5 mb-3">
             <Button
               variant="ghost"
-              className="w-full flex items-center gap-2.5 px-3 py-1.5 rounded hover:bg-[hsl(var(--slack-purple-hover))] text-[hsl(var(--slack-text-secondary))] text-[15px] h-auto justify-start font-normal"
+              className="w-full flex items-center gap-2.5 px-3 py-1.5 rounded hover:bg-[hsl(var(--slack-purple-hover))] text-[hsl(var(--slack-text-secondary))] text-[15px] h-auto justify-start font-normal transition-all"
               onClick={() => navigate('/threads')}
             >
               <MessageSquare className="h-4 w-4" />
@@ -105,7 +105,7 @@ export const WorkspaceSidebar = () => {
             </Button>
             <Button
               variant="ghost"
-              className="w-full flex items-center gap-2.5 px-3 py-1.5 rounded hover:bg-[hsl(var(--slack-purple-hover))] text-[hsl(var(--slack-text-secondary))] text-[15px] h-auto justify-start font-normal"
+              className="w-full flex items-center gap-2.5 px-3 py-1.5 rounded hover:bg-[hsl(var(--slack-purple-hover))] text-[hsl(var(--slack-text-secondary))] text-[15px] h-auto justify-start font-normal transition-all"
               onClick={() => navigate('/activity')}
             >
               <Bell className="h-4 w-4" />
@@ -113,7 +113,7 @@ export const WorkspaceSidebar = () => {
             </Button>
             <Button
               variant="ghost"
-              className="w-full flex items-center gap-2.5 px-3 py-1.5 rounded hover:bg-[hsl(var(--slack-purple-hover))] text-[hsl(var(--slack-text-secondary))] text-[15px] h-auto justify-start font-normal"
+              className="w-full flex items-center gap-2.5 px-3 py-1.5 rounded hover:bg-[hsl(var(--slack-purple-hover))] text-[hsl(var(--slack-text-secondary))] text-[15px] h-auto justify-start font-normal transition-all"
               onClick={() => navigate('/starred')}
             >
               <Star className="h-4 w-4" />
@@ -182,7 +182,7 @@ export const WorkspaceSidebar = () => {
                         navigate('/');
                       }}
                       className={cn(
-                        'w-full flex items-center gap-2 px-3 py-1 rounded text-[15px] group transition-colors',
+                        'w-full flex items-center gap-2 px-3 py-1 rounded text-[15px] group transition-all',
                         activeChannel === channel.id
                           ? 'bg-[hsl(var(--slack-cyan))] text-foreground font-bold'
                           : 'text-[hsl(var(--slack-text-secondary))] hover:bg-[hsl(var(--slack-purple-hover))]'

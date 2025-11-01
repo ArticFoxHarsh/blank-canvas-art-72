@@ -1,6 +1,6 @@
 import { useState, useRef } from 'react';
 import { motion } from 'framer-motion';
-import { Hash, Star, Users, Search, Info, AtSign, Send, Bold, Italic, ListOrdered, Menu } from 'lucide-react';
+import { Hash, Star, Users, Search, Info, AtSign, Send, Bold, Italic, ListOrdered, Menu, Loader2 } from 'lucide-react';
 import { useWorkspaceStore } from '@/store/useWorkspaceStore';
 import { useChannels } from '@/hooks/useChannels';
 import { useMessages } from '@/hooks/useMessages';
@@ -25,10 +25,14 @@ export const MessageArea = () => {
 
   const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
-    if ((!messageInput.trim() && selectedFiles.length === 0) || !user) return;
+    const trimmedMessage = messageInput.trim();
+    
+    if ((!trimmedMessage && selectedFiles.length === 0) || !user) return;
 
     // TODO: Upload files to storage before sending message
-    await sendMessage(messageInput, user.id);
+    if (trimmedMessage) {
+      await sendMessage(trimmedMessage, user.id);
+    }
     setMessageInput('');
     setSelectedFiles([]);
   };
@@ -126,7 +130,14 @@ export const MessageArea = () => {
       <ScrollArea className="flex-1">
         {loading ? (
           <div className="flex items-center justify-center h-full">
-            <div className="text-muted-foreground">Loading messages...</div>
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              className="flex flex-col items-center gap-3"
+            >
+              <Loader2 className="h-8 w-8 animate-spin text-primary" />
+              <p className="text-sm text-muted-foreground">Loading messages...</p>
+            </motion.div>
           </div>
         ) : messages.length === 0 ? (
           <ChannelWelcome channelName={channel.name} />
@@ -253,14 +264,20 @@ export const MessageArea = () => {
                 }}
                 rows={1}
               />
-              {messageInput && (
-                <Button
-                  type="submit"
-                  size="icon"
-                  className="absolute right-2 bottom-2 h-8 w-8 bg-primary hover:bg-primary/90 rounded"
+              {messageInput.trim() && (
+                <motion.div
+                  initial={{ scale: 0.8, opacity: 0 }}
+                  animate={{ scale: 1, opacity: 1 }}
+                  exit={{ scale: 0.8, opacity: 0 }}
                 >
-                  <Send className="h-4 w-4" />
-                </Button>
+                  <Button
+                    type="submit"
+                    size="icon"
+                    className="absolute right-2 bottom-2 h-8 w-8 bg-primary hover:bg-primary/90 rounded transition-all hover:scale-105"
+                  >
+                    <Send className="h-4 w-4" />
+                  </Button>
+                </motion.div>
               )}
             </div>
           </div>

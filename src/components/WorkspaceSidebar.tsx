@@ -11,8 +11,14 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { AddChannelDialog } from './AddChannelDialog';
 import { AddDMDialog } from './AddDMDialog';
-import { NewMessageDialog } from './NewMessageDialog';
 import { ChannelContextMenu } from './ChannelContextMenu';
+import { ChannelItemContextMenu } from './ChannelItemContextMenu';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import {
   DndContext,
   closestCenter,
@@ -30,14 +36,26 @@ import {
   verticalListSortingStrategy,
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
 
 interface SortableChannelItemProps {
   channel: any;
   isActive: boolean;
   onClick: () => void;
+  sections: string[];
+  currentSection: string;
+  onMoveToSection: (channelId: string, newSection: string) => void;
 }
 
-const SortableChannelItem = ({ channel, isActive, onClick }: SortableChannelItemProps) => {
+const SortableChannelItem = ({ 
+  channel, 
+  isActive, 
+  onClick, 
+  sections, 
+  currentSection, 
+  onMoveToSection 
+}: SortableChannelItemProps) => {
   const {
     attributes,
     listeners,
@@ -52,28 +70,34 @@ const SortableChannelItem = ({ channel, isActive, onClick }: SortableChannelItem
   };
 
   return (
-    <button
-      ref={setNodeRef}
-      style={style}
-      {...attributes}
-      {...listeners}
-      onClick={onClick}
-      className={cn(
-        'w-full flex items-center gap-2 px-3 py-1 rounded text-[15px] group transition-all',
-        isActive
-          ? 'bg-[hsl(var(--slack-cyan))] text-foreground font-bold'
-          : 'text-[hsl(var(--slack-text-secondary))] hover:bg-[hsl(var(--slack-purple-hover))]'
-      )}
+    <ChannelItemContextMenu
+      sections={sections}
+      currentSection={currentSection}
+      onMoveToSection={(section) => onMoveToSection(channel.id, section)}
     >
-      {channel.type === 'channel' ? (
-        <Hash className="h-[15px] w-[15px]" />
-      ) : (
-        <div className="w-5 h-5 rounded bg-[hsl(var(--slack-purple-active))] flex items-center justify-center text-xs">
-          👤
-        </div>
-      )}
-      <span className="flex-1 text-left truncate">{channel.name}</span>
-    </button>
+      <button
+        ref={setNodeRef}
+        style={style}
+        {...attributes}
+        {...listeners}
+        onClick={onClick}
+        className={cn(
+          'w-full flex items-center gap-2 px-3 py-1 rounded text-[15px] group transition-all',
+          isActive
+            ? 'bg-[hsl(var(--slack-cyan))] text-foreground font-bold'
+            : 'text-[hsl(var(--slack-text-secondary))] hover:bg-[hsl(var(--slack-purple-hover))]'
+        )}
+      >
+        {channel.type === 'channel' ? (
+          <Hash className="h-[15px] w-[15px]" />
+        ) : (
+          <div className="w-5 h-5 rounded bg-[hsl(var(--slack-purple-active))] flex items-center justify-center text-xs">
+            👤
+          </div>
+        )}
+        <span className="flex-1 text-left truncate">{channel.name}</span>
+      </button>
+    </ChannelItemContextMenu>
   );
 };
 
@@ -85,7 +109,6 @@ export const WorkspaceSidebar = () => {
   const [collapsedSections, setCollapsedSections] = useState<Record<string, boolean>>({});
   const [showAddChannel, setShowAddChannel] = useState(false);
   const [showAddDM, setShowAddDM] = useState(false);
-  const [showNewMessage, setShowNewMessage] = useState(false);
   const navigate = useNavigate();
 
   const sensors = useSensors(
@@ -119,6 +142,22 @@ export const WorkspaceSidebar = () => {
 
       const newOrder = arrayMove(sectionChannels, oldIndex, newIndex);
       reorderChannels(section, newOrder.map((c) => c.id));
+    }
+  };
+
+  const handleMoveToSection = async (channelId: string, newSection: string) => {
+    try {
+      const { error } = await supabase
+        .from('channels')
+        .update({ section: newSection })
+        .eq('id', channelId);
+
+      if (error) throw error;
+
+      toast.success(`Channel moved to ${newSection}`);
+    } catch (error) {
+      console.error('Error moving channel:', error);
+      toast.error('Failed to move channel');
     }
   };
 
@@ -174,25 +213,6 @@ export const WorkspaceSidebar = () => {
     >
       {/* Workspace Header */}
       <div className="px-3 py-2 border-b border-[hsl(var(--slack-purple-active))]">
-        <div className="flex items-center gap-2 mb-2">
-          <Button
-            variant="ghost"
-            size="icon"
-            className="h-9 w-9 flex-shrink-0 text-foreground hover:bg-[hsl(var(--slack-purple-hover))]"
-            onClick={() => setShowNewMessage(true)}
-            title="New message"
-          >
-            <Edit className="h-5 w-5" />
-          </Button>
-          <Button
-            variant="ghost"
-            size="icon"
-            className="h-9 w-9 flex-shrink-0 text-foreground hover:bg-[hsl(var(--slack-purple-hover))]"
-            title="Settings"
-          >
-            <Settings className="h-5 w-5" />
-          </Button>
-        </div>
         <Button
           variant="ghost"
           className="w-full justify-between px-2 h-auto py-2 text-foreground hover:bg-[hsl(var(--slack-purple-hover))] rounded"
@@ -203,7 +223,48 @@ export const WorkspaceSidebar = () => {
             </div>
             <span className="font-black text-[15px]">New Workspace</span>
           </div>
-          <ChevronDown className="h-4 w-4" />
+          <div className="flex items-center gap-1">
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-7 w-7 flex-shrink-0 text-foreground hover:bg-[hsl(var(--slack-purple-active))]"
+              onClick={(e) => {
+                e.stopPropagation();
+                navigate('/new-message');
+              }}
+              title="New message"
+            >
+              <Edit className="h-4 w-4" />
+            </Button>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-7 w-7 flex-shrink-0 text-foreground hover:bg-[hsl(var(--slack-purple-active))]"
+                  onClick={(e) => e.stopPropagation()}
+                  title="Settings"
+                >
+                  <Settings className="h-4 w-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-64">
+                <DropdownMenuItem>
+                  Filter sidebar
+                </DropdownMenuItem>
+                <DropdownMenuItem>
+                  Leave inactive channels
+                </DropdownMenuItem>
+                <DropdownMenuItem>
+                  Edit sidebar
+                </DropdownMenuItem>
+                <DropdownMenuItem>
+                  Create new section
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+            <ChevronDown className="h-4 w-4 ml-1" />
+          </div>
         </Button>
       </div>
 
@@ -311,6 +372,9 @@ export const WorkspaceSidebar = () => {
                             setActiveChannel(channel.id);
                             navigate('/');
                           }}
+                          sections={Object.keys(channelsBySection)}
+                          currentSection={section}
+                          onMoveToSection={handleMoveToSection}
                         />
                       ))}
                       <button 
@@ -381,7 +445,6 @@ export const WorkspaceSidebar = () => {
       
       <AddChannelDialog open={showAddChannel} onOpenChange={setShowAddChannel} />
       <AddDMDialog open={showAddDM} onOpenChange={setShowAddDM} />
-      <NewMessageDialog open={showNewMessage} onOpenChange={setShowNewMessage} />
     </motion.aside>
   );
 };

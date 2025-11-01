@@ -10,6 +10,7 @@ import Activity from "./pages/Activity";
 import Starred from "./pages/Starred";
 import Directories from "./pages/Directories";
 import Huddles from "./pages/Huddles";
+import NewMessage from "./pages/NewMessage";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -28,6 +29,7 @@ const App = () => (
           <Route path="/starred" element={<Starred />} />
           <Route path="/directories" element={<Directories />} />
           <Route path="/huddles" element={<Huddles />} />
+          <Route path="/new-message" element={<NewMessage />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>

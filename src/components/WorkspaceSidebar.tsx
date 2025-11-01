@@ -128,7 +128,12 @@ export const WorkspaceSidebar = () => {
   );
 
   // Set first channel as active on mount
-  // No auto-navigation here - let Index.tsx handle initial routing
+  useEffect(() => {
+    if (channels.length > 0 && !activeChannel) {
+      setActiveChannel(channels[0].id);
+      navigate(`/c/${channels[0].id}`);
+    }
+  }, [channels, activeChannel, setActiveChannel]);
 
   const toggleSection = (section: string) => {
     setCollapsedSections(prev => ({
@@ -323,9 +328,9 @@ export const WorkspaceSidebar = () => {
           {Object.entries(channelsBySection).map(([section, sectionChannels]) => (
             <div key={section} className="mb-3">
               <ChannelContextMenu>
-                <div 
-                  className="w-full flex items-center justify-between px-3 py-1 text-[hsl(var(--slack-text-secondary))] hover:text-foreground text-xs font-bold group cursor-pointer"
+                <button 
                   onClick={() => toggleSection(section)}
+                  className="w-full flex items-center justify-between px-3 py-1 text-[hsl(var(--slack-text-secondary))] hover:text-foreground text-xs font-bold group"
                 >
                   <div className="flex items-center gap-1">
                     {collapsedSections[section] ? (
@@ -348,7 +353,7 @@ export const WorkspaceSidebar = () => {
                   >
                     <Plus className="h-3.5 w-3.5" />
                   </button>
-                </div>
+                </button>
               </ChannelContextMenu>
               {!collapsedSections[section] && (
                 <DndContext

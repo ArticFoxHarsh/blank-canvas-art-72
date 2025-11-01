@@ -24,39 +24,50 @@ export const MessageArea = () => {
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const { channelId } = useParams();
   const navigate = useNavigate();
+  const [seededMessages, setSeededMessages] = useState(false);
 
+  // Sync URL param with active channel
   useEffect(() => {
     if (channelId && channelId !== activeChannel) {
       setActiveChannel(channelId);
-    } else if (!channelId && activeChannel) {
-      navigate(`/c/${activeChannel}`, { replace: true });
     }
-  }, [channelId, activeChannel, setActiveChannel, navigate]);
+  }, [channelId, activeChannel, setActiveChannel]);
 
-  // Seed sample messages across all channels on first load
+  // Seed sample messages across all channels once
   useEffect(() => {
+    if (seededMessages || !user || channels.length === 0) return;
+    
     const seed = async () => {
-      if (!user || channels.length === 0) return;
-      if (localStorage.getItem('seeded_messages_v1')) return;
-      const { count, error } = await supabase
-        .from('messages')
-        .select('*', { count: 'exact', head: true });
-      if (error) return;
-      if ((count || 0) > 0) {
-        localStorage.setItem('seeded_messages_v1', '1');
+      const key = 'workspace_messages_seeded';
+      if (localStorage.getItem(key)) {
+        setSeededMessages(true);
         return;
       }
+
+      const { count } = await supabase
+        .from('messages')
+        .select('*', { count: 'exact', head: true });
+      
+      if ((count || 0) > 0) {
+        localStorage.setItem(key, '1');
+        setSeededMessages(true);
+        return;
+      }
+
       const now = Date.now();
-      const sampleMessages = channels.flatMap((channel, idx) => ([
-        { channel_id: channel.id, user_id: user.id, content: `Welcome to #${channel.name}! 👋`, created_at: new Date(now - 60000*(idx*3+3)).toISOString() },
-        { channel_id: channel.id, user_id: user.id, content: `This is the ${channel.name} space${channel.description ? ` — ${channel.description}` : ''}.`, created_at: new Date(now - 60000*(idx*3+2)).toISOString() },
-        { channel_id: channel.id, user_id: user.id, content: 'Share your first message to get started!', created_at: new Date(now - 60000*(idx*3+1)).toISOString() },
-      ]));
-      await supabase.from('messages').insert(sampleMessages);
-      localStorage.setItem('seeded_messages_v1', '1');
+      const samples = channels.flatMap((ch, i) => [
+        { channel_id: ch.id, user_id: user.id, content: `Welcome to #${ch.name}! 👋`, created_at: new Date(now - 180000 - i*60000).toISOString() },
+        { channel_id: ch.id, user_id: user.id, content: ch.description ? `${ch.description}` : 'This is your space for collaboration.', created_at: new Date(now - 120000 - i*60000).toISOString() },
+        { channel_id: ch.id, user_id: user.id, content: 'Feel free to start chatting!', created_at: new Date(now - 60000 - i*60000).toISOString() },
+      ]);
+
+      await supabase.from('messages').insert(samples);
+      localStorage.setItem(key, '1');
+      setSeededMessages(true);
     };
+
     seed();
-  }, [channels, user]);
+  }, [user, channels, seededMessages]);
 
   const channel = channels.find((c) => c.id === activeChannel);
 

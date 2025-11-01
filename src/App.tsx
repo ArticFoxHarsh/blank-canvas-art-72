@@ -26,6 +26,7 @@ const ProtectedRoutes = () => {
   return (
     <Routes>
       <Route path="/" element={<MessageArea />} />
+      <Route path="/c/:channelId" element={<MessageArea />} />
       <Route path="/threads" element={<Threads />} />
       <Route path="/activity" element={<Activity />} />
       <Route path="/starred" element={<Starred />} />

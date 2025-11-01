@@ -1,4 +1,5 @@
-import { useState, useRef } from 'react';
+import { useEffect, useState, useRef } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Hash, Star, Users, Search, Info, AtSign, Send, Bold, Italic, ListOrdered, Menu, Loader2 } from 'lucide-react';
 import { useWorkspaceStore } from '@/store/useWorkspaceStore';
@@ -11,15 +12,51 @@ import { ChannelWelcome } from './ChannelWelcome';
 import { MessageItem } from './MessageItem';
 import { FileUpload } from './FileUpload';
 import { EmojiPicker } from './EmojiPicker';
+import { supabase } from '@/integrations/supabase/client';
 
 export const MessageArea = () => {
-  const { activeChannel, toggleSidebar, sidebarCollapsed } = useWorkspaceStore();
+  const { activeChannel, toggleSidebar, sidebarCollapsed, setActiveChannel } = useWorkspaceStore();
   const { channels } = useChannels();
   const { user } = useAuth();
-  const { messages, loading, sendMessage } = useMessages(activeChannel);
+  const { messages, loading, sendMessage, deleteMessage } = useMessages(activeChannel);
   const [messageInput, setMessageInput] = useState('');
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   const inputRef = useRef<HTMLTextAreaElement>(null);
+  const { channelId } = useParams();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (channelId && channelId !== activeChannel) {
+      setActiveChannel(channelId);
+    } else if (!channelId && activeChannel) {
+      navigate(`/c/${activeChannel}`, { replace: true });
+    }
+  }, [channelId, activeChannel, setActiveChannel, navigate]);
+
+  // Seed sample messages across all channels on first load
+  useEffect(() => {
+    const seed = async () => {
+      if (!user || channels.length === 0) return;
+      if (localStorage.getItem('seeded_messages_v1')) return;
+      const { count, error } = await supabase
+        .from('messages')
+        .select('*', { count: 'exact', head: true });
+      if (error) return;
+      if ((count || 0) > 0) {
+        localStorage.setItem('seeded_messages_v1', '1');
+        return;
+      }
+      const now = Date.now();
+      const sampleMessages = channels.flatMap((channel, idx) => ([
+        { channel_id: channel.id, user_id: user.id, content: `Welcome to #${channel.name}! 👋`, created_at: new Date(now - 60000*(idx*3+3)).toISOString() },
+        { channel_id: channel.id, user_id: user.id, content: `This is the ${channel.name} space${channel.description ? ` — ${channel.description}` : ''}.`, created_at: new Date(now - 60000*(idx*3+2)).toISOString() },
+        { channel_id: channel.id, user_id: user.id, content: 'Share your first message to get started!', created_at: new Date(now - 60000*(idx*3+1)).toISOString() },
+      ]));
+      await supabase.from('messages').insert(sampleMessages);
+      localStorage.setItem('seeded_messages_v1', '1');
+    };
+    seed();
+  }, [channels, user]);
 
   const channel = channels.find((c) => c.id === activeChannel);
 
@@ -174,6 +211,9 @@ export const MessageArea = () => {
                   key={message.id}
                   message={message}
                   showAvatar={showAvatar}
+                  onDelete={async (id) => {
+                    await deleteMessage(id);
+                  }}
                 />
               );
             })}

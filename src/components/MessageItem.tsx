@@ -16,9 +16,10 @@ import {
 interface MessageItemProps {
   message: Message;
   showAvatar?: boolean;
+  onDelete?: (id: string) => Promise<void> | void;
 }
 
-export const MessageItem = ({ message, showAvatar = true }: MessageItemProps) => {
+export const MessageItem = ({ message, showAvatar = true, onDelete }: MessageItemProps) => {
   const [isHovered, setIsHovered] = useState(false);
   const [showThread, setShowThread] = useState(false);
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
@@ -94,18 +95,22 @@ export const MessageItem = ({ message, showAvatar = true }: MessageItemProps) =>
   const handleDeleteMessage = async () => {
     if (!user || message.user_id !== user.id) return;
 
-    const { error } = await supabase.from('messages').delete().eq('id', message.id);
-
-    if (error) {
+    try {
+      if (onDelete) {
+        await onDelete(message.id);
+      } else {
+        const { error } = await supabase.from('messages').delete().eq('id', message.id);
+        if (error) throw error;
+      }
+      toast({
+        title: 'Message deleted',
+        description: 'Your message has been deleted',
+      });
+    } catch (error) {
       toast({
         title: 'Error',
         description: 'Failed to delete message',
         variant: 'destructive',
-      });
-    } else {
-      toast({
-        title: 'Message deleted',
-        description: 'Your message has been deleted',
       });
     }
   };

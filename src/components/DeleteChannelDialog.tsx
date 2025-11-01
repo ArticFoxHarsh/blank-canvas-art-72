@@ -10,6 +10,8 @@ import {
 } from "@/components/ui/alert-dialog";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { useNavigate } from "react-router-dom";
+import { useWorkspaceStore } from "@/store/useWorkspaceStore";
 
 interface DeleteChannelDialogProps {
   open: boolean;
@@ -24,6 +26,9 @@ export const DeleteChannelDialog = ({
   channelId,
   channelName,
 }: DeleteChannelDialogProps) => {
+  const navigate = useNavigate();
+  const { setActiveChannel } = useWorkspaceStore();
+
   const handleDelete = async () => {
     try {
       const { error } = await supabase
@@ -34,7 +39,10 @@ export const DeleteChannelDialog = ({
       if (error) throw error;
 
       toast.success(`Channel #${channelName} deleted`);
+      // Reset active channel and navigate to a safe route
+      setActiveChannel('');
       onOpenChange(false);
+      navigate('/');
     } catch (error) {
       console.error('Error deleting channel:', error);
       toast.error('Failed to delete channel');

@@ -101,9 +101,29 @@ export const useMessages = (channelId: string | undefined) => {
       )
       .subscribe();
 
+    // Global DELETE listener to ensure deleted messages disappear instantly even without replica identity full
+    const deleteChannel = supabase
+      .channel('messages-delete')
+      .on(
+        'postgres_changes',
+        {
+          event: 'DELETE',
+          schema: 'public',
+          table: 'messages',
+        },
+        (payload) => {
+          const deletedId = (payload.old as any)?.id;
+          if (deletedId) {
+            setMessages((prev) => prev.filter((m) => m.id !== deletedId));
+          }
+        }
+      )
+      .subscribe();
+
     return () => {
       supabase.removeChannel(channel);
       supabase.removeChannel(reactionChannel);
+      supabase.removeChannel(deleteChannel);
     };
   }, [channelId]);
 
@@ -133,5 +153,17 @@ export const useMessages = (channelId: string | undefined) => {
     }
   };
 
-  return { messages, loading, sendMessage, addReaction };
+  const deleteMessage = async (messageId: string) => {
+    // Optimistic update
+    const prev = messages;
+    setMessages((cur) => cur.filter((m) => m.id !== messageId));
+    const { error } = await supabase.from('messages').delete().eq('id', messageId);
+    if (error) {
+      console.error('Error deleting message:', error);
+      // rollback
+      setMessages(prev);
+    }
+  };
+
+  return { messages, loading, sendMessage, addReaction, deleteMessage };
 };

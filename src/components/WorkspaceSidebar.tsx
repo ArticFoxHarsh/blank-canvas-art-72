@@ -131,6 +131,7 @@ export const WorkspaceSidebar = () => {
   useEffect(() => {
     if (channels.length > 0 && !activeChannel) {
       setActiveChannel(channels[0].id);
+      navigate(`/c/${channels[0].id}`);
     }
   }, [channels, activeChannel, setActiveChannel]);
 
@@ -372,7 +373,7 @@ export const WorkspaceSidebar = () => {
                           isActive={activeChannel === channel.id}
                           onClick={() => {
                             setActiveChannel(channel.id);
-                            navigate('/');
+                            navigate(`/c/${channel.id}`);
                           }}
                           sections={Object.keys(channelsBySection)}
                           currentSection={section}

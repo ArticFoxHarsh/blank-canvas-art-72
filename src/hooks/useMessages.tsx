@@ -6,7 +6,6 @@ export interface Message {
   channel_id: string;
   user_id: string;
   content: string;
-  parent_id: string | null;
   created_at: string;
   updated_at: string;
   profiles?: {
@@ -19,7 +18,6 @@ export interface Message {
     emoji: string;
     user_id: string;
   }>;
-  thread_count?: number;
 }
 
 export const useMessages = (channelId: string | undefined) => {
@@ -40,7 +38,6 @@ export const useMessages = (channelId: string | undefined) => {
           reactions (id, emoji, user_id)
         `)
         .eq('channel_id', channelId)
-        .is('parent_id', null)
         .order('created_at', { ascending: true });
 
       if (!error && data) {
@@ -51,17 +48,11 @@ export const useMessages = (channelId: string | undefined) => {
               .from('profiles')
               .select('username, display_name, avatar_url')
               .eq('id', message.user_id)
-              .single();
-
-            const { count } = await supabase
-              .from('messages')
-              .select('*', { count: 'exact', head: true })
-              .eq('parent_id', message.id);
+              .maybeSingle();
 
             return {
               ...message,
               profiles: profile,
-              thread_count: count || 0,
             };
           })
         );

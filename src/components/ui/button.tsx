@@ -15,6 +15,9 @@ const buttonVariants = cva(
         secondary: "bg-secondary text-secondary-foreground hover:bg-secondary/80",
         ghost: "hover:bg-accent hover:text-accent-foreground",
         link: "text-primary underline-offset-4 hover:underline",
+        calculator: "bg-card hover:bg-accent text-foreground font-semibold border border-border shadow-sm hover:shadow-md transition-all",
+        operator: "bg-primary text-primary-foreground hover:bg-primary/90 font-bold shadow-md hover:shadow-lg transition-all",
+        special: "bg-muted text-muted-foreground hover:bg-muted/80 font-semibold transition-all",
       },
       size: {
         default: "h-10 px-4 py-2",

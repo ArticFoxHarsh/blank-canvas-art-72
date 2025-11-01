@@ -181,13 +181,7 @@ export const MessageItem = ({ message, showAvatar = true }: MessageItemProps) =>
           </DropdownMenu>
         </div>
 
-        {/* Thread indicator */}
-        {message.thread_count !== undefined && message.thread_count > 0 && (
-          <button className="flex items-center gap-2 mt-1 text-xs text-primary hover:underline">
-            <MessageSquare className="h-3.5 w-3.5" />
-            <span>{message.thread_count} {message.thread_count === 1 ? 'reply' : 'replies'}</span>
-          </button>
-        )}
+        {/* Reactions display removed thread indicator */}
       </div>
 
       {/* Hover Actions */}

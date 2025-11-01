@@ -14,7 +14,39 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      calculator_state: {
+        Row: {
+          display: string
+          id: string
+          operation: string | null
+          previous_value: string | null
+          session_id: string
+          updated_at: string
+          updated_by: string | null
+          waiting_for_operand: boolean
+        }
+        Insert: {
+          display?: string
+          id?: string
+          operation?: string | null
+          previous_value?: string | null
+          session_id: string
+          updated_at?: string
+          updated_by?: string | null
+          waiting_for_operand?: boolean
+        }
+        Update: {
+          display?: string
+          id?: string
+          operation?: string | null
+          previous_value?: string | null
+          session_id?: string
+          updated_at?: string
+          updated_by?: string | null
+          waiting_for_operand?: boolean
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never

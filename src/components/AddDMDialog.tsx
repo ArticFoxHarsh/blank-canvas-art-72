@@ -45,37 +45,50 @@ export const AddDMDialog = ({ open, onOpenChange }: AddDMDialogProps) => {
     if (!user) return;
 
     try {
-      // Check if DM already exists - need to check both user orders
-      const { data: existingChannels } = await supabase
+      // Check if DM already exists - fetch all DMs and filter locally
+      const { data: existingChannels, error: checkError } = await supabase
         .from('channels')
-        .select('id, name')
-        .eq('type', 'dm')
-        .or(`dm_users.cs.{${user.id},${profileId}},dm_users.cs.{${profileId},${user.id}}`);
+        .select('id, name, dm_users')
+        .eq('type', 'dm');
 
-      if (existingChannels && existingChannels.length > 0) {
+      if (checkError) throw checkError;
+
+      // Find existing DM with both users
+      const existingDM = existingChannels?.find(channel => {
+        const dmUsers = channel.dm_users || [];
+        return dmUsers.length === 2 && dmUsers.includes(user.id) && dmUsers.includes(profileId);
+      });
+
+      if (existingDM) {
         toast({
-          title: 'DM already exists',
-          description: `You already have a conversation with ${username}`,
+          title: 'Conversation already exists',
+          description: `Opening conversation with ${username}`,
         });
         onOpenChange(false);
+        window.location.href = `/c/${existingDM.id}`;
         return;
       }
 
-      const { error } = await supabase.from('channels').insert({
+      const { data, error } = await supabase.from('channels').insert({
         name: username,
         type: 'dm',
         section: 'Direct messages',
         created_by: user.id,
         dm_users: [user.id, profileId],
-      });
+      }).select().single();
 
       if (error) throw error;
 
       toast({
-        title: 'DM created',
+        title: 'Conversation started',
         description: `Started conversation with ${username}`,
       });
       onOpenChange(false);
+      
+      // Navigate to the new DM
+      if (data) {
+        window.location.href = `/c/${data.id}`;
+      }
     } catch (error: any) {
       toast({
         title: 'Error',

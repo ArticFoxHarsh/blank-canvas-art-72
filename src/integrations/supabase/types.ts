@@ -86,7 +86,7 @@ export type Database = {
       messages: {
         Row: {
           channel_id: string
-          content: string
+          content: string | null
           created_at: string
           file_name: string | null
           file_size: number | null
@@ -98,7 +98,7 @@ export type Database = {
         }
         Insert: {
           channel_id: string
-          content: string
+          content?: string | null
           created_at?: string
           file_name?: string | null
           file_size?: number | null
@@ -110,7 +110,7 @@ export type Database = {
         }
         Update: {
           channel_id?: string
-          content?: string
+          content?: string | null
           created_at?: string
           file_name?: string | null
           file_size?: number | null

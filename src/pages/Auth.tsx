@@ -96,7 +96,7 @@ export default function Auth() {
           return;
         }
 
-        const { error } = await supabase.auth.signUp({
+        const { data, error } = await supabase.auth.signUp({
           email,
           password,
           options: {
@@ -114,6 +114,11 @@ export default function Auth() {
           title: 'Account created!',
           description: 'Welcome to the workspace.',
         });
+
+        // Auto-confirm is enabled, navigate immediately if session exists
+        if (data.session) {
+          navigate('/');
+        }
       }
     } catch (error: any) {
       toast({

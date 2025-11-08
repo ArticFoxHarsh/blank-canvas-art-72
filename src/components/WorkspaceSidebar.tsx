@@ -248,7 +248,7 @@ export const WorkspaceSidebar = () => {
       <div className="px-3 py-2 border-b border-[hsl(var(--slack-purple-active))]">
         <div className="w-full flex justify-between items-center px-2 py-2">
           <div className="flex items-center gap-2.5">
-            <span className="font-black text-[15px]">New Workspace</span>
+            <span className="font-black text-[15px]">Debugging Demons</span>
           </div>
           <div className="flex items-center gap-1">
             <Button

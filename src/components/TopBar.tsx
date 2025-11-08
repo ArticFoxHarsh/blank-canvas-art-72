@@ -63,7 +63,7 @@ export const TopBar = () => {
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-[hsl(var(--slack-text-muted))]" />
           <Input
             type="text"
-            placeholder="Search New Workspace"
+            placeholder="Search Debugging Demons"
             className="w-full pl-10 bg-[hsl(var(--slack-purple-active))] border-[hsl(var(--slack-purple-active))] text-foreground placeholder:text-[hsl(var(--slack-text-muted))] focus-visible:ring-1 focus-visible:ring-[hsl(var(--slack-cyan))] h-8"
           />
         </div>
@@ -146,13 +146,33 @@ export const TopBar = () => {
             </div>
           </DropdownMenuContent>
         </DropdownMenu>
-        <Button
-          variant="ghost"
-          size="icon"
-          className="h-7 w-7 text-[hsl(var(--slack-text-muted))] hover:text-foreground hover:bg-[hsl(var(--slack-purple-hover))]"
-        >
-          <MoreVertical className="h-4 w-4" />
-        </Button>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-7 w-7 text-[hsl(var(--slack-text-muted))] hover:text-foreground hover:bg-[hsl(var(--slack-purple-hover))]"
+            >
+              <MoreVertical className="h-4 w-4" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" className="w-72 bg-popover z-50">
+            <DropdownMenuItem>Open channel details</DropdownMenuItem>
+            <DropdownMenuItem>Summarise channel</DropdownMenuItem>
+            <DropdownMenuItem>Edit notifications</DropdownMenuItem>
+            <DropdownMenuItem>Star channel</DropdownMenuItem>
+            <DropdownMenuItem>Move channel</DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem>Add template to channel</DropdownMenuItem>
+            <DropdownMenuItem>Add a workflow</DropdownMenuItem>
+            <DropdownMenuItem>Edit settings</DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem>Copy</DropdownMenuItem>
+            <DropdownMenuItem>Search in channel</DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem className="text-destructive">Leave channel</DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
       </div>
     </header>
   );

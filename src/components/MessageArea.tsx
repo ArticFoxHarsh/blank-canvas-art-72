@@ -72,7 +72,6 @@ export const MessageArea = () => {
     
     if ((!trimmedMessage && selectedFiles.length === 0) || !user) return;
 
-    // TODO: Upload files to storage before sending message
     if (trimmedMessage) {
       await sendMessage(trimmedMessage, user.id);
     }
@@ -251,7 +250,6 @@ export const MessageArea = () => {
           <ChannelWelcome channelName={channel.name} channelType={channel.type} />
         ) : (
           <div className="p-5 space-y-2 max-w-6xl">
-            {/* Channel Topic */}
             {channel.description && (
               <motion.div
                 initial={{ opacity: 0 }}
@@ -270,7 +268,6 @@ export const MessageArea = () => {
               </motion.div>
             )}
 
-            {/* Messages */}
             {messages.map((message, index) => {
               const prevMessage = messages[index - 1];
               const showAvatar = !prevMessage || 
@@ -472,7 +469,7 @@ export const MessageArea = () => {
             </div>
 
             {/* Bottom Action Bar */}
-            <div className="flex items-center justify-between px-2 py-2 bg-muted/30">
+            <div className="flex items-center justify-between px-2 py-2 border-t border-border">
               <div className="flex items-center gap-1">
                 <Button 
                   type="button" 
@@ -559,90 +556,6 @@ export const MessageArea = () => {
                   </motion.div>
                 )}
               </AnimatePresence>
-            </div>
-
-            {/* Input Field */}
-            <div className="relative">
-              <textarea
-                ref={inputRef}
-                value={messageInput}
-                onChange={(e) => handleInputChange(e.target.value)}
-                placeholder={channel.type === 'dm' ? `Message @${channel.name}` : `Message #${channel.name}`}
-                className="w-full px-3 py-3 bg-transparent border-none outline-none text-[15px] placeholder:text-muted-foreground resize-none min-h-[60px] max-h-[200px]"
-                onKeyDown={(e) => {
-                  if (showMentions) {
-                    if (e.key === 'ArrowDown') {
-                      e.preventDefault();
-                      setSelectedMentionIndex((prev) => 
-                        prev < mentionUsers.length - 1 ? prev + 1 : 0
-                      );
-                    } else if (e.key === 'ArrowUp') {
-                      e.preventDefault();
-                      setSelectedMentionIndex((prev) => 
-                        prev > 0 ? prev - 1 : mentionUsers.length - 1
-                      );
-                    } else if (e.key === 'Enter' || e.key === 'Tab') {
-                      e.preventDefault();
-                      if (mentionUsers[selectedMentionIndex]) {
-                        insertMention(mentionUsers[selectedMentionIndex].username);
-                      }
-                      return;
-                    } else if (e.key === 'Escape') {
-                      setShowMentions(false);
-                    }
-                  } else if (e.key === 'Enter' && !e.shiftKey) {
-                    e.preventDefault();
-                    handleSendMessage(e);
-                  }
-                }}
-                rows={1}
-              />
-              
-              {/* Mention Autocomplete */}
-              <AnimatePresence>
-                {showMentions && mentionUsers.length > 0 && (
-                  <motion.div
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: 10 }}
-                    className="absolute bottom-full left-0 right-0 mb-2 bg-card border border-border rounded-lg shadow-lg max-h-48 overflow-y-auto"
-                  >
-                    {mentionUsers.map((user, index) => (
-                      <button
-                        key={user.id}
-                        type="button"
-                        onClick={() => insertMention(user.username)}
-                        className={`w-full flex items-center gap-3 px-3 py-2 text-left hover:bg-[hsl(var(--slack-purple-hover))] transition-colors ${
-                          index === selectedMentionIndex ? 'bg-[hsl(var(--slack-purple-hover))]' : ''
-                        }`}
-                      >
-                        <div className="w-8 h-8 rounded bg-gradient-to-br from-primary/30 to-primary/10 flex items-center justify-center border border-primary/30">
-                          👤
-                        </div>
-                        <div>
-                          <div className="font-bold text-sm">{user.display_name || user.username}</div>
-                          <div className="text-xs text-muted-foreground">@{user.username}</div>
-                        </div>
-                      </button>
-                    ))}
-                  </motion.div>
-                )}
-              </AnimatePresence>
-              {messageInput.trim() && (
-                <motion.div
-                  initial={{ scale: 0.8, opacity: 0 }}
-                  animate={{ scale: 1, opacity: 1 }}
-                  exit={{ scale: 0.8, opacity: 0 }}
-                >
-                  <Button
-                    type="submit"
-                    size="icon"
-                    className="absolute right-2 bottom-2 h-8 w-8 bg-primary hover:bg-primary/90 rounded transition-all hover:scale-105"
-                  >
-                    <Send className="h-4 w-4" />
-                  </Button>
-                </motion.div>
-              )}
             </div>
           </div>
         </form>
